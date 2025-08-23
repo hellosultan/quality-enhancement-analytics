@@ -1,9 +1,3 @@
-Beautiful 🎉 — your repo is live! Now let’s make it look professional and polished by adding a proper README.md.
-
-Here’s a starter README.md you can copy into your repo root (via VS Code or git add README.md):
-
-⸻
-
 Quality Enhancement Analytics
 
 Analytics project demonstrating Quality Enhancement in Higher Education using synthetic datasets aligned with QAA UK themes.
