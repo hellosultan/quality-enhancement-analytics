@@ -1,65 +1,96 @@
-Quality Enhancement Analytics
+# Quality Enhancement Analytics
 
-Analytics project demonstrating Quality Enhancement in Higher Education using synthetic datasets aligned with QAA UK themes.
+**End‑to‑end analytics project for Quality Enhancement (QE) in Higher Education**, using **synthetic datasets** aligned with **QAA UK** themes.  
+Showcases skills across **data generation → cleaning → KPI analysis → visualization/dashboard**.
 
-📌 About
+---
 
-This project simulates how data can be used to support quality assurance and continuous improvement in higher education. It follows the QAA UK Quality Code areas such as Admissions, Assessment, Monitoring & Evaluation, Student Engagement, and Support Services.
+## ✨ What’s inside
 
-The workflow demonstrates end-to-end data skills:
-	1.	Synthetic Data Generation – creating realistic student, assessment, survey, and support datasets.
-	2.	Data Cleaning & Preparation – handling missing data, standardising categories, and deriving features.
-	3.	KPI Analysis – assessment turnaround, programme pass rates, student engagement, at-risk modules.
-	4.	Visualisation & Dashboarding – exporting KPIs to CSV/PNG for dashboards (Power BI/Matplotlib).
+- **Synthetic data builder** (SQLite) for students, assessments, surveys, support usage, etc.
+- **Notebook analysis** for cleaning, features (turnaround bins, engagement index), and KPIs.
+- **Exports**: tidy **CSVs** and **PNGs** ready for dashboards (Power BI or Python).
 
-⸻
+---
 
-🗂️ Repository Structure
-
+## 📁 Repository structure
 quality-enhancement-analytics/
-├─ notebooks/            # analysis.ipynb (cleaning, KPIs, plots)
-├─ src/sql/              # load_qe_data.py (synthetic dataset builder)
-├─ data/                 # SQLite DB (generated, ignored in git)
-├─ reports/figures/      # CSV & PNG exports (analysis outputs)
-├─ requirements.txt      # Python dependencies
+├─ notebooks/
+│  └─ analysis.ipynb          # cleaning, features, KPIs, plots
+├─ src/
+│  └─ sql/
+│     └─ load_qe_data.py      # synthetic dataset builder → data/qe.db
+├─ data/                      # SQLite DB (generated; ignored by git)
+│  └─ qe.db
+├─ reports/
+│  └─ figures/                # exported CSVs/PNGs for dashboards
+├─ requirements.txt
 └─ .gitignore
+---
 
+## 🚀 Quick start (Python 3.11 via Conda)
 
-⸻
-
-⚙️ Quick Start
-
-Local (Python 3.11, Conda)
-
-# Create env
+```bash
+# Create & activate env
 conda create -n qe python=3.11 -y
 conda activate qe
 
 # Install deps
 pip install -r requirements.txt
 
-# Build database
+# Build the synthetic SQLite DB
 python src/sql/load_qe_data.py
 
-# Launch Jupyter
-jupyter notebook notebooks/analysis.ipynb
-
-Google Colab
-
-!git clone https://github.com/hellosultan/quality-enhancement-analytics.git
-%cd quality-enhancement-analytics
-!pip install -r requirements.txt
-!python src/sql/load_qe_data.py
-
+# (Optional) Register Jupyter kernel
+python -m ipykernel install --user --name qe --display-name "qe (Py3.11)"
+# Launch Jupyter and open notebooks/analysis.ipynb
+jupyter notebook
+If Jupyter isn’t on PATH, use: python -m notebook
 
 ⸻
 
-📊 Key KPIs
-	•	Assessment Turnaround – % returned ≤15 days.
-	•	Programme Pass Rates – trends across terms.
-	•	Student Engagement Index – surveys × support visits.
-	•	At-Risk Modules – low pass rates + low satisfaction.
-	•	Scatter Analysis – engagement vs performance.
+🧪 Data & features (high level)
+	•	Tables: students, admissions, modules, enrolments, assessments, grades,
+surveys (QAA-theme items), support_usage, complaints, placements.
+	•	Features:
+	•	Assessment turnaround (days) + bins: <=10, 11–15, 16–20, >20
+	•	Programme/term pass rate (avg ≥ 50% pass)
+	•	Engagement index = survey mean (1–5) × log(1 + median support visits)
+	•	At‑risk modules = pass rate < 70% and survey < 3.5
 
-Outputs are exported to reports/figures/ as CSVs and PNGs for dashboards.
+⸻
 
+📊 Outputs (saved to reports/figures/)
+
+CSVs
+	•	kpi_pass_rate.csv
+	•	assessment_turnaround_bins.csv
+	•	engagement_index.csv
+	•	at_risk_modules.csv
+
+PNGs
+	•	pass_rate_trend_<Programme>.png
+	•	turnaround_distribution.png
+	•	scatter_pass_vs_survey.png
+	•	scatter_engagement_vs_pass.png
+
+⸻
+
+🧭 QAA alignment (examples)
+	•	Assessment → turnaround timeliness, grade distributions, pass rates
+	•	Monitoring & Evaluation → programme trends, at‑risk detection
+	•	Student Engagement / Enabling Achievement → survey means, engagement index
+	•	Admissions/WP (scaffolded) → offer rates, WP flags (extendable)
+
+⸻
+
+🗺️ Roadmap
+	•	One‑page Python “mini dashboard” that loads exported CSVs
+	•	Power BI dashboard (Admissions, Assessment, Engagement, Monitoring tabs)
+	•	Optional: add employability/outcomes synthetic table and KPIs
+
+⸻
+
+🤝 Notes
+	•	All data are synthetic (RNG‑seeded) and safe for public repos.
+	•	Designed for lightweight analytics using pandas + SQLite (scale up to Spark only if needed).
