@@ -1,0 +1,4 @@
+data/*.db
+reports/figures/*.png
+reports/figures/*.csv
+.ipynb_checkpoints/
