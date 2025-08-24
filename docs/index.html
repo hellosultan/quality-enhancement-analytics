@@ -4,20 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Quality Enhancement Analytics</title>
-  <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
-  <!-- Plotly + PapaParse + DataTables -->
   <script src="https://cdn.plot.ly/plotly-2.34.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <link  href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet"/>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
   <style>
-    :root{
-      --bg:#f6f7fb; --ink:#0f172a; --muted:#64748b;
-      --accent:#2563eb; --card:#ffffff; --ring:#e5e7eb;
-    }
+    :root{ --bg:#f6f7fb; --ink:#0f172a; --muted:#64748b; --accent:#2563eb; --card:#ffffff; --ring:#e5e7eb; }
     *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--ink)}
     header{background:#111827;color:#e5e7eb;padding:18px 20px;font-weight:800;font-size:26px}
     .wrap{display:grid;grid-template-columns:280px 1fr;gap:20px;max-width:1400px;margin:22px auto;padding:0 18px}
@@ -40,32 +34,23 @@
 <header>Quality Enhancement Analytics</header>
 
 <div class="wrap">
-  <!-- Sidebar -->
   <aside>
     <h2>Filters</h2>
     <label class="small">Select terms</label>
     <select id="termSelect" class="pill" multiple size="6">
-      <option>2023-Fall</option>
-      <option>2024-Spring</option>
-      <option>2024-Fall</option>
-      <option>2025-Spring</option>
+      <option>2023-Fall</option><option>2024-Spring</option><option>2024-Fall</option><option>2025-Spring</option>
     </select>
     <div style="height:10px"></div>
-
     <label class="small">Select programmes</label>
     <select id="progSelect" class="pill" multiple size="8"></select>
-
     <div style="height:12px"></div>
     <button id="applyBtn" class="btn">Apply filters</button>
     <div class="note">Hold ⌘/Ctrl to select multiple.</div>
-
     <h2 style="margin-top:20px">About</h2>
     <p class="small">Synthetic data demo aligned to QAA UK themes. Built with pandas → CSV → Plotly/DataTables (static on GitHub Pages).</p>
   </aside>
 
-  <!-- Main content -->
   <main>
-    <!-- KPI cards -->
     <div class="kpis" id="kpiRow">
       <div class="card"><div class="kpi-title">Overall pass rate</div><div class="kpi-val" id="kpiPass">—</div></div>
       <div class="card"><div class="kpi-title">Assessments returned ≤15d</div><div class="kpi-val" id="kpiTurn">—</div></div>
@@ -73,38 +58,15 @@
       <div class="card"><div class="kpi-title">At‑risk modules</div><div class="kpi-val" id="kpiRisk">—</div></div>
     </div>
 
-    <!-- Charts -->
     <div class="grid">
-      <div class="card">
-        <h3>Programme Pass Rates by Term</h3>
-        <div id="fig1" style="height:360px"></div>
-      </div>
-      <div class="card">
-        <h3>Assessment Turnaround Distribution</h3>
-        <div id="fig2" style="height:360px"></div>
-        <div class="caption">Each bar = number of assessments in that turnaround bin.</div>
-      </div>
-      <div class="card">
-        <h3>Engagement vs Pass Rate</h3>
-        <div id="fig3" style="height:360px"></div>
-        <div class="caption">Each dot = a programme/term combination.</div>
-      </div>
-      <div class="card">
-        <h3>Modules: Pass vs Survey Satisfaction</h3>
-        <div id="fig4" style="height:360px"></div>
-        <div class="caption">Each dot = a module. Red = low satisfaction & pass.</div>
-      </div>
-      <div class="card">
-        <h3>Segment #5 — Medium‑to‑Low Engagement & Pass</h3>
-        <div id="fig5" style="height:360px"></div>
-      </div>
-      <div class="card">
-        <h3>Segment #6 — Modules with Medium‑to‑Low Pass</h3>
-        <div id="fig6" style="height:360px"></div>
-      </div>
+      <div class="card"><h3>Programme Pass Rates by Term</h3><div id="fig1" style="height:360px"></div></div>
+      <div class="card"><h3>Assessment Turnaround Distribution</h3><div id="fig2" style="height:360px"></div><div class="caption">Each bar = number of assessments in that turnaround bin.</div></div>
+      <div class="card"><h3>Engagement vs Pass Rate</h3><div id="fig3" style="height:360px"></div><div class="caption">Each dot = a programme/term combination.</div></div>
+      <div class="card"><h3>Modules: Pass vs Survey Satisfaction</h3><div id="fig4" style="height:360px"></div><div class="caption">Each dot = a module. Red = low satisfaction & pass.</div></div>
+      <div class="card"><h3>Segment #5 — Medium‑to‑Low Engagement & Pass</h3><div id="fig5" style="height:360px"></div></div>
+      <div class="card"><h3>Segment #6 — Modules with Medium‑to‑Low Pass</h3><div id="fig6" style="height:360px"></div></div>
     </div>
 
-    <!-- Data table -->
     <div class="card" style="margin-top:14px">
       <h3>Module Summary</h3>
       <table id="modTable" class="display" style="width:100%"></table>
@@ -115,30 +77,24 @@
 
 <script>
 (async function(){
-  // ---- helpers ----
   const loadCSV = async (path) => new Promise((resolve,reject)=>{
     Papa.parse(path, {download:true, header:true, dynamicTyping:true, complete:(res)=>resolve(res.data), error:reject});
   });
   const asArray = (sel) => Array.from(sel.selectedOptions).map(o=>o.value);
 
-  // ---- load CSVs ----
   const base = "data/";
   const progPass = await loadCSV(base + "kpi_pass_rate.csv");
   const turn     = await loadCSV(base + "assessment_turnaround_bins.csv");
   const eng      = await loadCSV(base + "engagement_index.csv");
   const risk     = await loadCSV(base + "at_risk_modules.csv");
 
-  // populate programme list
   const progs = [...new Set(progPass.map(d=>d.programme))].sort();
   const progSel = document.getElementById("progSelect");
   progs.forEach(p => { const o=document.createElement("option"); o.textContent=p; o.value=p; progSel.appendChild(o); });
-
-  // default-select all
   [...progSel.options].forEach(o=>o.selected=true);
   const termSel = document.getElementById("termSelect");
   [...termSel.options].forEach(o=>o.selected=true);
 
-  // compute KPIs (unfiltered baseline; will recompute on Apply)
   function computeKPIs(pp, trn, e, r){
     const overallPass = (pp.reduce((s,d)=>s+(+d.pass_rate_pct||0),0) / Math.max(pp.length,1)).toFixed(1) + "%";
     const pctTurn15 = (trn.filter(d => ["<=10","11-15"].includes(String(d.turn_bin))).length / Math.max(trn.length,1) * 100).toFixed(0) + "%";
@@ -153,49 +109,55 @@
     document.getElementById("kpiRisk").textContent = k.riskCnt;
   }
 
-  // join for engagement vs pass
   const key = (p,t) => `${p}|||${t}`;
   const engMap = new Map(eng.map(d=>[key(d.programme,d.term), d.engagement_index]));
   function joinEng(pp){ return pp.map(d=>({ ...d, engagement_index: engMap.get(key(d.programme,d.term)) })); }
 
-  // draw all charts (with current filters)
+  function bottomLegend() {
+    return { orientation:"h", y:-0.2, x:0.5, xanchor:"center", yanchor:"top" };
+  }
+
   function drawAll(selProgs, selTerms){
     const pp = progPass.filter(d=>selProgs.includes(d.programme) && selTerms.includes(d.term));
     const e  = eng.filter(d=>selProgs.includes(d.programme) && selTerms.includes(d.term));
-    const tr = turn; // not term-specific in our export, keep all
-    const rk = risk;
+    const tr = turn, rk = risk;
 
     setKPIs(computeKPIs(pp,tr,e,rk));
 
-    // 1 line
+    // 1) Programme pass rates (legend below)
     const byProg = {};
     pp.forEach(d=>{
       (byProg[d.programme] ||= {x:[], y:[], name:d.programme, type:"scatter", mode:"lines+markers"});
       byProg[d.programme].x.push(d.term); byProg[d.programme].y.push(d.pass_rate_pct);
     });
-    Plotly.newPlot("fig1", Object.values(byProg), {yaxis:{title:"Pass rate (%)"}, margin:{t:10}});
+    Plotly.newPlot("fig1", Object.values(byProg), {
+      xaxis:{title:"Term"},
+      yaxis:{title:"Pass rate (%)"},
+      legend: bottomLegend(),
+      margin:{t:10}
+    });
 
-    // 2 bar (turnaround)
+    // 2) Turnaround (no legend)
     const bins = ["<=10","11-15","16-20",">20"];
     const counts = bins.map(b => tr.filter(d=>String(d.turn_bin)===b).length);
-    Plotly.newPlot("fig2", [{x:bins, y:counts, type:"bar"}], {margin:{t:10}});
+    Plotly.newPlot("fig2", [{x:bins, y:counts, type:"bar"}], {margin:{t:10}, showlegend:false});
 
-    // 3 scatter engagement vs pass
+    // 3) Engagement vs pass (single series, no legend)
     const merged = joinEng(pp);
     Plotly.newPlot("fig3", [{
       x: merged.map(d=>d.engagement_index), y: merged.map(d=>d.pass_rate_pct),
-      text: merged.map(d=>`${d.programme} ${d.term}`), mode:"markers", type:"scatter"
-    }], {xaxis:{title:"Engagement index"}, yaxis:{title:"Pass rate (%)"}, margin:{t:10}});
+      text: merged.map(d=>`${d.programme} ${d.term}`), mode:"markers", type:"scatter", name:""
+    }], {xaxis:{title:"Engagement index"}, yaxis:{title:"Pass rate (%)"}, margin:{t:10}, showlegend:false});
 
-    // 4 modules scatter (color by at_risk)
+    // 4) Modules scatter (legend below)
     Plotly.newPlot("fig4", [
-      {x: risk.filter(d=>d.at_risk).map(d=>d.mean_survey), y: risk.filter(d=>d.at_risk).map(d=>d.pass_rate),
+      {x: risk.filter(d=>d.at_risk).map(d=>d.mean_survey),  y: risk.filter(d=>d.at_risk).map(d=>d.pass_rate),
        mode:"markers", name:"Low satisfaction & pass (at‑risk)", marker:{color:"crimson"}},
       {x: risk.filter(d=>!d.at_risk).map(d=>d.mean_survey), y: risk.filter(d=>!d.at_risk).map(d=>d.pass_rate),
        mode:"markers", name:"Higher satisfaction", marker:{color:"seagreen"}}
-    ], {xaxis:{title:"Survey score (1–5)"}, yaxis:{title:"Pass rate (%)"}, margin:{t:10}});
+    ], {xaxis:{title:"Survey score (1–5)"}, yaxis:{title:"Pass rate (%)"}, legend: bottomLegend(), margin:{t:10}});
 
-    // 5 segment #5 (≤ medians)
+    // 5) Segment #5 (single series, no legend)
     const engVals  = merged.map(d=>+d.engagement_index||0).sort((a,b)=>a-b);
     const passVals = merged.map(d=>+d.pass_rate_pct||0).sort((a,b)=>a-b);
     const medEng  = engVals[Math.floor(engVals.length/2)] || 0;
@@ -203,23 +165,31 @@
     const seg5 = merged.filter(d => (+d.engagement_index||0) <= medEng && (+d.pass_rate_pct||0) <= medPass);
     Plotly.newPlot("fig5", [{
       x: seg5.map(d=>d.engagement_index), y: seg5.map(d=>d.pass_rate_pct),
-      text: seg5.map(d=>`${d.programme} ${d.term}`), mode:"markers"
-    }], {shapes:[
-      {type:"line", x0:medEng, x1:medEng, y0:0, y1:1, yref:"paper", line:{dash:"dot"}},
-      {type:"line", y0:medPass, y1:medPass, x0:0, x1:1, xref:"paper", line:{dash:"dot"}}
-    ], xaxis:{title:"Engagement index"}, yaxis:{title:"Pass rate (%)"}, margin:{t:10}});
+      text: seg5.map(d=>`${d.programme} ${d.term}`), mode:"markers", name:""
+    }], {
+      shapes:[
+        {type:"line", x0:medEng, x1:medEng, y0:0, y1:1, yref:"paper", line:{dash:"dot"}},
+        {type:"line", y0:medPass, y1:medPass, x0:0, x1:1, xref:"paper", line:{dash:"dot"}}
+      ],
+      xaxis:{title:"Engagement index"}, yaxis:{title:"Pass rate (%)"},
+      margin:{t:10}, showlegend:false
+    });
 
-    // 6 modules with ≤ median pass
+    // 6) Modules ≤ median pass (single series colors by rule, no legend)
     const modPassMed = risk.map(d=>+d.pass_rate||0).sort((a,b)=>a-b)[Math.floor(risk.length/2)] || 0;
     const seg6 = risk.filter(d=>(+d.pass_rate||0) <= modPassMed);
     Plotly.newPlot("fig6", [{
       x: seg6.map(d=>d.mean_survey), y: seg6.map(d=>d.pass_rate),
       text: seg6.map(d=>`Module ${d.module_id}`), mode:"markers",
-      marker:{color: seg6.map(d => (d.mean_survey <= (risk.map(x=>x.mean_survey).sort((a,b)=>a-b)[Math.floor(risk.length/2)]) ? "crimson":"seagreen"))}
-    }], {shapes:[{type:"line", y0:modPassMed, y1:modPassMed, x0:0, x1:1, xref:"paper", line:{dash:"dot"}}],
-         xaxis:{title:"Survey score (1–5)"}, yaxis:{title:"Pass rate (%)"}, margin:{t:10}});
+      marker:{color: seg6.map(d => (d.mean_survey <= (risk.map(x=>x.mean_survey).sort((a,b)=>a-b)[Math.floor(risk.length/2)]) ? "crimson":"seagreen"))},
+      name:""
+    }], {
+      shapes:[{type:"line", y0:modPassMed, y1:modPassMed, x0:0, x1:1, xref:"paper", line:{dash:"dot"}}],
+      xaxis:{title:"Survey score (1–5)"}, yaxis:{title:"Pass rate (%)"},
+      margin:{t:10}, showlegend:false
+    });
 
-    // table (modules)
+    // table
     const cols = [
       {title:"module_id", data:"module_id"},
       {title:"pass_rate", data:"pass_rate"},
@@ -231,10 +201,7 @@
     $('#modTable').DataTable({data:risk, columns:cols, pageLength:10, order:[[1,"asc"]]});
   }
 
-  // first render (all selected)
   drawAll(progs, Array.from(termSel.options).map(o=>o.value));
-
-  // Apply filters
   document.getElementById("applyBtn").addEventListener("click", ()=>{
     const selProgs = asArray(progSel); const selTerms = asArray(termSel);
     drawAll(selProgs, selTerms);
