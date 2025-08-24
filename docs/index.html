@@ -1,143 +1,117 @@
 <script>
 (async function () {
-  // ---- CSV loader (trim headers, skip empties) ----
-  const loadCSV = async (path) => new Promise((resolve,reject)=>{
-  Papa.parse(path, {
-    download: true,
-    header: true,
-    dynamicTyping: true,
-    skipEmptyLines: "greedy",
-    transformHeader: h => (h || "").trim(),
-    transform: v => (typeof v === "string" ? v.trim() : v),  // ← trim values
-    complete: res => resolve(res.data),
-    error: reject
-  });
-});
+  // ---------- helpers ----------
+  const log = (...a) => { try { console.log(...a); } catch(e) {} };
 
-  const asArray = (sel) => Array.from(sel.selectedOptions).map((o) => o.value);
-
-  // ---- load CSVs ----
-  const base = "data/";
-  const progPass = await loadCSV(base + "kpi_pass_rate.csv");
-  const turn = await loadCSV(base + "assessment_turnaround_bins.csv");
-  const eng = await loadCSV(base + "engagement_index.csv");
-  let risk = await loadCSV(base + "at_risk_modules.csv");
-
-  // ---- normalize risk rows/keys/types ----
-  function normalizeRisk(rows){
-  const clean = (v) => (typeof v === "string" ? v.trim() : v);
-
-  const TRUE_SET  = new Set(["true","1","yes","y"]);
-  const FALSE_SET = new Set(["false","0","no","n",""]);
-  const asBool = (v) => {
-    const s = String(clean(v)).toLowerCase();
-    if (TRUE_SET.has(s))  return true;
-    if (FALSE_SET.has(s)) return false;
-    return Boolean(v); // fallback
-  };
-
-  return rows
-    .filter(r => r && r.module_id !== undefined && r.module_id !== "")
-    .map(r => {
-      // tolerate accidental trailing-space headers
-      const pass = clean(r.pass_rate ?? r["pass_rate "]);
-      const surv = clean(r.mean_survey ?? r["mean_survey "]);
-      const flag = clean(r.at_risk ?? r["at_risk "]);
-
-      return {
-        module_id: Number(clean(r.module_id)),
-        pass_rate: pass === "" || pass == null ? null : Number(pass),
-        mean_survey: surv === "" || surv == null ? null : Number(surv),
-        at_risk: asBool(flag),
-      };
+  // CSV loader: trims headers & values; skips empty lines
+  const loadCSV = async (path) => new Promise((resolve, reject) => {
+    Papa.parse(path, {
+      download: true,
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: "greedy",
+      transformHeader: (h) => (h || "").trim(),
+      transform: (v) => (typeof v === "string" ? v.trim() : v),
+      complete: (res) => resolve(res.data || []),
+      error: reject
     });
-}
- const riskClean = normalizeRisk(risk);
-const rk = riskClean; // then use rk in KPIs, fig4, fig6, and the DataTable
-
-  // ---- populate programme selector ----
-  const progs = [...new Set(progPass.map((d) => d.programme))].sort();
-  const progSel = document.getElementById("progSelect");
-  progs.forEach((p) => {
-    const o = document.createElement("option");
-    o.textContent = p;
-    o.value = p;
-    progSel.appendChild(o);
   });
-  [...progSel.options].forEach((o) => (o.selected = true));
-  const termSel = document.getElementById("termSelect");
-  [...termSel.options].forEach((o) => (o.selected = true));
 
-  // ---- KPI helpers ----
-  function computeKPIs(pp, trn, e, rk) {
-    const overallPass =
-      (
-        pp.reduce((s, d) => s + (+d.pass_rate_pct || 0), 0) /
-        Math.max(pp.length, 1)
-      ).toFixed(1) + "%";
-    const pctTurn15 =
-      (
-        (trn.filter((d) => ["<=10", "11-15"].includes(String(d.turn_bin)))
-          .length /
-          Math.max(trn.length, 1)) *
-        100
-      ).toFixed(0) + "%";
-    const engMed =
-      e
-        .map((d) => +d.engagement_index || 0)
-        .sort((a, b) => a - b)[Math.floor(e.length / 2)]
-        ?.toFixed(2) ?? "—";
-    const riskCnt = rk.filter((d) => d.at_risk === true).length;
-    return { overallPass, pctTurn15, engMed, riskCnt };
+  const asArray = (sel) => Array.from(sel.selectedOptions).map(o => o.value);
+  const bottomLegend = () => ({ orientation: "h", y: -0.2, x: 0.5, xanchor: "center", yanchor: "top" });
+
+  // ---------- load CSVs (from docs/data) ----------
+  const base = "data/";
+  let progPass = [], turn = [], eng = [], risk = [];
+  try {
+    [progPass, turn, eng, risk] = await Promise.all([
+      loadCSV(base + "kpi_pass_rate.csv"),
+      loadCSV(base + "assessment_turnaround_bins.csv"),
+      loadCSV(base + "engagement_index.csv"),
+      loadCSV(base + "at_risk_modules.csv"),
+    ]);
+  } catch (e) {
+    log("CSV load error:", e);
+    alert("Could not load CSVs from docs/data/. Ensure the four CSVs exist.");
+    return;
   }
-  function setKPIs(k) {
+  log("Loaded lengths:", { progPass: progPass.length, turn: turn.length, eng: eng.length, risk: risk.length });
+
+  // ---------- normalize risk (robust booleans & numbers) ----------
+  function normalizeRisk(rows){
+    const clean = (v) => (typeof v === "string" ? v.trim() : v);
+    const TRUE_SET  = new Set(["true","1","yes","y"]);
+    const FALSE_SET = new Set(["false","0","no","n",""]);
+    const asBool = (v) => {
+      const s = String(clean(v ?? "")).toLowerCase();
+      if (TRUE_SET.has(s))  return true;
+      if (FALSE_SET.has(s)) return false;
+      return Boolean(v);
+    };
+    return (rows || [])
+      .filter(r => r && r.module_id !== undefined && r.module_id !== "")
+      .map(r => {
+        // tolerate headers with stray spaces
+        const pass = clean(r.pass_rate   ?? r["pass_rate "]);
+        const surv = clean(r.mean_survey ?? r["mean_survey "]);
+        const flag = clean(r.at_risk     ?? r["at_risk "]);
+        return {
+          module_id: Number(clean(r.module_id)),
+          pass_rate: pass === "" || pass == null ? null : Number(pass),
+          mean_survey: surv === "" || surv == null ? null : Number(surv),
+          at_risk: asBool(flag),
+        };
+      });
+  }
+  const riskClean = normalizeRisk(risk);
+
+  // ---------- populate filters ----------
+  const progs = [...new Set((progPass || []).map(d => d.programme))].filter(Boolean).sort();
+  const progSel = document.getElementById("progSelect");
+  progs.forEach(p => { const o=document.createElement("option"); o.textContent=p; o.value=p; progSel.appendChild(o); });
+  [...progSel.options].forEach(o => o.selected = true);
+
+  const termSel = document.getElementById("termSelect");
+  [...termSel.options].forEach(o => o.selected = true);
+
+  // ---------- KPI helpers ----------
+  function computeKPIs(pp, trn, e, rk){
+    const overallPass = (
+      pp.reduce((s,d)=>s+(+d.pass_rate_pct||0),0) / Math.max(pp.length,1)
+    ).toFixed(1) + "%";
+    const pctTurn15 = (
+      trn.filter(d => ["<=10","11-15"].includes(String(d.turn_bin))).length /
+      Math.max(trn.length,1) * 100
+    ).toFixed(0) + "%";
+    const engMed = e.map(d=>+d.engagement_index||0).sort((a,b)=>a-b)[Math.floor(e.length/2)];
+    const riskCnt = rk.filter(d => d.at_risk === true).length;
+    return { overallPass, pctTurn15, engMed: (engMed==null? "—" : engMed.toFixed(2)), riskCnt };
+  }
+  function setKPIs(k){
     document.getElementById("kpiPass").textContent = k.overallPass;
     document.getElementById("kpiTurn").textContent = k.pctTurn15;
-    document.getElementById("kpiEng").textContent = k.engMed;
+    document.getElementById("kpiEng").textContent  = k.engMed;
     document.getElementById("kpiRisk").textContent = k.riskCnt;
   }
 
-  // ---- joins & layout helpers ----
-  const key = (p, t) => `${p}|||${t}`;
-  const engMap = new Map(
-    eng.map((d) => [key(d.programme, d.term), d.engagement_index])
-  );
-  function joinEng(pp) {
-    return pp.map((d) => ({
-      ...d,
-      engagement_index: engMap.get(key(d.programme, d.term)),
-    }));
-  }
-  const bottomLegend = () => ({
-    orientation: "h",
-    y: -0.2,
-    x: 0.5,
-    xanchor: "center",
-    yanchor: "top",
-  });
+  // ---------- join helper (engagement onto pass) ----------
+  const key = (p,t) => `${p}|||${t}`;
+  const engMap = new Map(eng.map(d => [key(d.programme, d.term), d.engagement_index]));
+  function joinEng(pp){ return pp.map(d => ({ ...d, engagement_index: engMap.get(key(d.programme, d.term)) })); }
 
-  // ---- draw all ----
-  function drawAll(selProgs, selTerms) {
-    const pp = progPass.filter(
-      (d) => selProgs.includes(d.programme) && selTerms.includes(d.term)
-    );
-    const e = eng.filter(
-      (d) => selProgs.includes(d.programme) && selTerms.includes(d.term)
-    );
-    const rk = riskClean; // normalized
+  // ---------- draw all visualizations ----------
+  function drawAll(selProgs, selTerms){
+    const pp = progPass.filter(d => selProgs.includes(d.programme) && selTerms.includes(d.term));
+    const e  = eng.filter(d => selProgs.includes(d.programme) && selTerms.includes(d.term));
+    const rk = riskClean; // normalized dataset for modules
 
+    // KPIs
     setKPIs(computeKPIs(pp, turn, e, rk));
 
-    // 1) Programme pass rates
+    // 1) Programme pass rates (multi-trace; legend below)
     const byProg = {};
-    pp.forEach((d) => {
-      (byProg[d.programme] ||= {
-        x: [],
-        y: [],
-        name: d.programme,
-        type: "scatter",
-        mode: "lines+markers",
-      });
+    pp.forEach(d => {
+      (byProg[d.programme] ||= {x:[], y:[], name:d.programme, type:"scatter", mode:"lines+markers"});
       byProg[d.programme].x.push(d.term);
       byProg[d.programme].y.push(d.pass_rate_pct);
     });
@@ -145,186 +119,122 @@ const rk = riskClean; // then use rk in KPIs, fig4, fig6, and the DataTable
       xaxis: { title: "Term" },
       yaxis: { title: "Pass rate (%)" },
       legend: bottomLegend(),
-      margin: { t: 10 },
+      margin: { t: 10 }
     });
 
-    // 2) Turnaround
-    const bins = ["<=10", "11-15", "16-20", ">20"];
-    const counts = bins.map(
-      (b) => turn.filter((d) => String(d.turn_bin) === b).length
-    );
-    Plotly.newPlot(
-      "fig2",
-      [{ x: bins, y: counts, type: "bar" }],
-      { margin: { t: 10 }, showlegend: false }
-    );
+    // 2) Assessment turnaround (single series; no legend)
+    const bins = ["<=10","11-15","16-20",">20"];
+    const counts = bins.map(b => turn.filter(d => String(d.turn_bin) === b).length);
+    Plotly.newPlot("fig2", [{ x: bins, y: counts, type: "bar" }], { margin: { t: 10 }, showlegend: false });
 
-    // 3) Engagement vs pass
+    // 3) Engagement vs Pass (single series; no legend)
     const merged = joinEng(pp);
-    Plotly.newPlot(
-      "fig3",
-      [
-        {
-          x: merged.map((d) => d.engagement_index),
-          y: merged.map((d) => d.pass_rate_pct),
-          text: merged.map((d) => `${d.programme} ${d.term}`),
-          mode: "markers",
-          type: "scatter",
-          name: "",
-        },
-      ],
-      {
-        xaxis: { title: "Engagement index" },
-        yaxis: { title: "Pass rate (%)" },
-        margin: { t: 10 },
-        showlegend: false,
-      }
-    );
-
-    // 4) Modules: pass vs survey (legend below)
-    Plotly.newPlot(
-      "fig4",
-      [
-        {
-          x: rk.filter((d) => d.at_risk).map((d) => d.mean_survey),
-          y: rk.filter((d) => d.at_risk).map((d) => d.pass_rate),
-          mode: "markers",
-          name: "Low satisfaction & pass (at‑risk)",
-          marker: { color: "crimson" },
-        },
-        {
-          x: rk.filter((d) => !d.at_risk).map((d) => d.mean_survey),
-          y: rk.filter((d) => !d.at_risk).map((d) => d.pass_rate),
-          mode: "markers",
-          name: "Higher satisfaction",
-          marker: { color: "seagreen" },
-        },
-      ],
-      {
-        xaxis: { title: "Survey score (1–5)" },
-        yaxis: { title: "Pass rate (%)" },
-        legend: bottomLegend(),
-        margin: { t: 10 },
-      }
-    );
-
-    // 5) Segment #5 (<= medians)
-    const engVals = merged
-      .map((d) => +d.engagement_index || 0)
-      .sort((a, b) => a - b);
-    const passVals = merged
-      .map((d) => +d.pass_rate_pct || 0)
-      .sort((a, b) => a - b);
-    const medEng = engVals[Math.floor(engVals.length / 2)] || 0;
-    const medPass = passVals[Math.floor(passVals.length / 2)] || 0;
-    const seg5 = merged.filter(
-      (d) =>
-        (+d.engagement_index || 0) <= medEng &&
-        (+d.pass_rate_pct || 0) <= medPass
-    );
-    Plotly.newPlot(
-      "fig5",
-      [
-        {
-          x: seg5.map((d) => d.engagement_index),
-          y: seg5.map((d) => d.pass_rate_pct),
-          text: seg5.map((d) => `${d.programme} ${d.term}`),
-          mode: "markers",
-          name: "",
-        },
-      ],
-      {
-        shapes: [
-          { type: "line", x0: medEng, x1: medEng, y0: 0, y1: 1, yref: "paper", line: { dash: "dot" } },
-          { type: "line", y0: medPass, y1: medPass, x0: 0, x1: 1, xref: "paper", line: { dash: "dot" } },
-        ],
-        xaxis: { title: "Engagement index" },
-        yaxis: { title: "Pass rate (%)" },
-        margin: { t: 10 },
-        showlegend: false,
-      }
-    );
-
-    // 6) Modules <= median pass
-   // 6) Modules <= median pass (split into at-risk vs higher satisfaction)
-const modPassMed =
-  rk.map((d) => +d.pass_rate || 0).sort((a, b) => a - b)[
-    Math.floor(rk.length / 2)
-  ] || 0;
-
-const seg6 = rk.filter((d) => (+d.pass_rate || 0) <= modPassMed);
-
-Plotly.newPlot(
-  "fig6",
-  [
-    {
-      x: seg6.filter((d) => d.at_risk).map((d) => d.mean_survey),
-      y: seg6.filter((d) => d.at_risk).map((d) => d.pass_rate),
+    Plotly.newPlot("fig3", [{
+      x: merged.map(d => d.engagement_index),
+      y: merged.map(d => d.pass_rate_pct),
+      text: merged.map(d => `${d.programme} ${d.term}`),
       mode: "markers",
-      name: "Low satisfaction & pass (at-risk)",
-      marker: { color: "crimson" },
-    },
-    {
-      x: seg6.filter((d) => !d.at_risk).map((d) => d.mean_survey),
-      y: seg6.filter((d) => !d.at_risk).map((d) => d.pass_rate),
-      mode: "markers",
-      name: "Higher satisfaction",
-      marker: { color: "seagreen" },
-    },
-  ],
-  {
-    shapes: [
+      type: "scatter",
+      name: ""
+    }], {
+      xaxis: { title: "Engagement index" },
+      yaxis: { title: "Pass rate (%)" },
+      margin: { t: 10 },
+      showlegend: false
+    });
+
+    // 4) Modules: pass vs satisfaction (at-risk vs higher; legend below)
+    Plotly.newPlot("fig4", [
       {
-        type: "line",
-        y0: modPassMed,
-        y1: modPassMed,
-        x0: 0,
-        x1: 1,
-        xref: "paper",
-        line: { dash: "dot" },
+        x: rk.filter(d => d.at_risk).map(d => d.mean_survey),
+        y: rk.filter(d => d.at_risk).map(d => d.pass_rate),
+        mode: "markers",
+        name: "Low satisfaction & pass (at‑risk)",
+        marker: { color: "crimson" }
       },
-    ],
-    xaxis: { title: "Survey score (1–5)" },
-    yaxis: { title: "Pass rate (%)" },
-    legend: { orientation: "h", y: -0.2, x: 0.5, xanchor: "center" },
-    margin: { t: 10 },
+      {
+        x: rk.filter(d => !d.at_risk).map(d => d.mean_survey),
+        y: rk.filter(d => !d.at_risk).map(d => d.pass_rate),
+        mode: "markers",
+        name: "Higher satisfaction",
+        marker: { color: "seagreen" }
+      }
+    ], {
+      xaxis: { title: "Survey score (1–5)" },
+      yaxis: { title: "Pass rate (%)" },
+      legend: bottomLegend(),
+      margin: { t: 10 }
+    });
+
+    // 5) Segment #5 — ≤ medians (single series; no legend)
+    const engVals  = merged.map(d => +d.engagement_index || 0).sort((a,b)=>a-b);
+    const passVals = merged.map(d => +d.pass_rate_pct   || 0).sort((a,b)=>a-b);
+    const medEng   = engVals[Math.floor(engVals.length/2)] || 0;
+    const medPass  = passVals[Math.floor(passVals.length/2)] || 0;
+    const seg5 = merged.filter(d => (+d.engagement_index || 0) <= medEng && (+d.pass_rate_pct || 0) <= medPass);
+    Plotly.newPlot("fig5", [{
+      x: seg5.map(d => d.engagement_index),
+      y: seg5.map(d => d.pass_rate_pct),
+      text: seg5.map(d => `${d.programme} ${d.term}`),
+      mode: "markers",
+      name: ""
+    }], {
+      shapes: [
+        { type: "line", x0: medEng,  x1: medEng,  y0: 0, y1: 1, yref: "paper", line: { dash: "dot" } },
+        { type: "line", y0: medPass, y1: medPass, x0: 0, x1: 1, xref: "paper", line: { dash: "dot" } }
+      ],
+      xaxis: { title: "Engagement index" },
+      yaxis: { title: "Pass rate (%)" },
+      margin: { t: 10 },
+      showlegend: false
+    });
+
+    // 6) Modules — ≤ median pass, split into at-risk vs higher (legend below)
+    const modPassMed = rk.map(d => +d.pass_rate || 0).sort((a,b)=>a-b)[Math.floor(rk.length/2)] || 0;
+    const seg6 = rk.filter(d => (+d.pass_rate || 0) <= modPassMed);
+    Plotly.newPlot("fig6", [
+      {
+        x: seg6.filter(d => d.at_risk).map(d => d.mean_survey),
+        y: seg6.filter(d => d.at_risk).map(d => d.pass_rate),
+        mode: "markers",
+        name: "Low satisfaction & pass (at‑risk)",
+        marker: { color: "crimson" }
+      },
+      {
+        x: seg6.filter(d => !d.at_risk).map(d => d.mean_survey),
+        y: seg6.filter(d => !d.at_risk).map(d => d.pass_rate),
+        mode: "markers",
+        name: "Higher satisfaction",
+        marker: { color: "seagreen" }
+      }
+    ], {
+      shapes: [{ type: "line", y0: modPassMed, y1: modPassMed, x0: 0, x1: 1, xref: "paper", line: { dash: "dot" } }],
+      xaxis: { title: "Survey score (1–5)" },
+      yaxis: { title: "Pass rate (%)" },
+      legend: bottomLegend(),
+      margin: { t: 10 }
+    });
+
+    // ---- DataTable (null‑safe) ----
+    const cols = [
+      { title: "module_id",   data: "module_id",   defaultContent: "—" },
+      { title: "pass_rate",   data: "pass_rate",   defaultContent: "—" },
+      { title: "mean_survey", data: "mean_survey", defaultContent: "—" },
+      { title: "at_risk",     data: "at_risk",     defaultContent: "—" }
+    ];
+    if ($.fn.dataTable.isDataTable("#modTable")) $("#modTable").DataTable().destroy();
+    $("#modTable").empty();
+    $("#modTable").DataTable({ data: rk, columns: cols, pageLength: 10, order: [[1, "asc"]] });
   }
-);
-
-    // ---- DataTable (null-safe) ----
-      // 6) Modules <= median pass (…your fig6 code just above…)
-
-  // ---- DataTable (null‑safe) ----
-  const cols = [
-    { title: "module_id",   data: "module_id",   defaultContent: "—" },
-    { title: "pass_rate",   data: "pass_rate",   defaultContent: "—" },
-    { title: "mean_survey", data: "mean_survey", defaultContent: "—" },
-    { title: "at_risk",     data: "at_risk",     defaultContent: "—" }
-  ];
-
-  // rk should be the normalized array: const rk = riskClean; (set earlier in drawAll)
-  if ($.fn.dataTable.isDataTable("#modTable")) {
-    $("#modTable").DataTable().destroy();
-  }
-  $("#modTable").empty();
-  $("#modTable").DataTable({
-    data: rk,
-    columns: cols,
-    pageLength: 10,
-    order: [[1, "asc"]]
-  });
-} // <- end of drawAll
 
   // initial render (all selected)
-  drawAll(
-    progs,
-    Array.from(document.getElementById("termSelect").options).map((o) => o.value)
-  );
+  const selectedTerms = Array.from(document.getElementById("termSelect").options).map(o => o.value);
+  drawAll(progs, selectedTerms);
 
   // Apply filters
   document.getElementById("applyBtn").addEventListener("click", () => {
-    const selProgs = asArray(progSel);
-    const selTerms = asArray(termSel);
+    const selProgs = asArray(document.getElementById("progSelect"));
+    const selTerms = asArray(document.getElementById("termSelect"));
     drawAll(selProgs, selTerms);
   });
 })();
