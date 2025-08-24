@@ -14,58 +14,116 @@
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
   <style>
-    :root{ --bg:#f6f7fb; --ink:#0f172a; --muted:#64748b; --accent:#2563eb; --card:#ffffff; --ring:#e5e7eb; }
+    :root{
+      --bg:#0b1020; --panel:#0f172a; --ink:#e5e7eb; --muted:#94a3b8;
+      --ring:#1f2937; --accent:#60a5fa; --accent2:#a78bfa; --accent3:#34d399;
+      --card:#111827; --shadow: 0 8px 30px rgba(2,6,23,.35);
+    }
     *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--ink)}
-    header{background:#111827;color:#e5e7eb;padding:18px 20px;font-weight:800;font-size:26px}
-    main{max-width:1200px;margin:22px auto;padding:0 18px}
-    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
-    .card{background:var(--card);border:1px solid var(--ring);border-radius:14px;padding:16px}
-    .kpi-title{color:var(--muted);font-size:13px}
-    .kpi-val{font-size:26px;font-weight:800;margin-top:6px}
-    .grid{display:grid;grid-template-columns:1fr;gap:14px}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:radial-gradient(1000px 600px at 10% -10%, #0b173b 0%, #0b1020 50%), var(--bg);color:var(--ink)}
+    a{color:var(--accent);text-decoration:none}
+    header.nav{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter:saturate(140%) blur(10px);
+      background:rgba(11,16,32,.7); border-bottom:1px solid rgba(99,102,241,.15);
+      display:flex; align-items:center; justify-content:space-between; padding:12px 20px;
+    }
+    .brand{font-weight:800; letter-spacing:.3px}
+    .nav-actions a{display:inline-block; padding:8px 12px; border:1px solid var(--ring); border-radius:12px; color:var(--ink); margin-left:8px}
+    .nav-actions a.primary{background:linear-gradient(90deg, var(--accent), var(--accent2)); border:none; color:#081224; font-weight:700}
+
+    .hero{
+      max-width:1200px; margin:34px auto 22px; padding:0 18px;
+      display:grid; grid-template-columns:1.2fr .8fr; gap:20px;
+    }
+    .hero-card{
+      background:linear-gradient(180deg, rgba(96,165,250,.08), rgba(167,139,250,.05));
+      border:1px solid rgba(96,165,250,.15); border-radius:18px; padding:24px; box-shadow:var(--shadow);
+    }
+    .hero h1{font-size:34px; margin:0 0 10px}
+    .subtitle{color:var(--muted); font-size:15px; line-height:1.5}
+    .pills{margin-top:12px}
+    .pill{display:inline-block; padding:6px 10px; margin:4px 6px 0 0; border-radius:999px; font-size:12px; color:#0b1020; font-weight:700;
+      background:linear-gradient(90deg, var(--accent3), var(--accent))}
+    .hero-kpis{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+    .mini{background:var(--card); border:1px solid var(--ring); border-radius:14px; padding:14px; box-shadow:var(--shadow)}
+    .mini .t{color:var(--muted); font-size:12px} .mini .v{font-size:24px; font-weight:800; margin-top:6px}
+
+    main{max-width:1200px; margin:14px auto 60px; padding:0 18px}
+    .section{margin-top:22px}
+    .section h2{margin:0 0 10px; font-size:18px; letter-spacing:.2px}
+    .grid{display:grid; grid-template-columns:1fr; gap:14px}
     @media(min-width:1100px){.grid{grid-template-columns:1fr 1fr}}
-    .caption{color:var(--muted);font-size:12px;margin-top:6px}
-    table.dataTable thead th{background:#f8fafc}
+    .card{background:var(--card); border:1px solid var(--ring); border-radius:16px; padding:16px; box-shadow:var(--shadow)}
+    .card h3{margin:0 0 6px}
+    .caption{color:var(--muted); font-size:12px; margin-top:8px}
+    footer{max-width:1200px; margin:30px auto; padding:0 18px; color:var(--muted); font-size:12px}
+    table.dataTable thead th{background:#0c1224;color:#cbd5e1;border-bottom:1px solid var(--ring)}
   </style>
 </head>
 <body>
-<header>Quality Enhancement Analytics</header>
+
+<header class="nav">
+  <div class="brand">Quality Enhancement Analytics</div>
+  <div class="nav-actions">
+    <a href="https://github.com/hellosultan/quality-enhancement-analytics" target="_blank" rel="noopener">GitHub</a>
+    <a class="primary" href="data/kpi_pass_rate.csv" target="_blank" rel="noopener">Download CSVs</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-card">
+    <h1>AI‑assisted QAA‑aligned insights</h1>
+    <p class="subtitle">End‑to‑end project showing synthetic data generation, cleaning, KPI analysis and visual narrative dashboards mapped to QAA UK themes (Assessment, Monitoring & Evaluation, Student Engagement).</p>
+    <div class="pills">
+      <span class="pill">Synthetic, RNG‑seeded</span>
+      <span class="pill">SQLite + pandas</span>
+      <span class="pill">Plotly + DataTables</span>
+    </div>
+  </div>
+  <div class="hero-kpis">
+    <div class="mini"><div class="t">Overall pass rate</div><div class="v" id="kpiPass">—</div></div>
+    <div class="mini"><div class="t">Assessments ≤15d</div><div class="v" id="kpiTurn">—</div></div>
+    <div class="mini"><div class="t">Median engagement</div><div class="v" id="kpiEng">—</div></div>
+  </div>
+</section>
 
 <main>
-  <!-- KPI cards -->
-  <div class="kpis">
-    <div class="card"><div class="kpi-title">Overall pass rate</div><div class="kpi-val" id="kpiPass">—</div></div>
-    <div class="card"><div class="kpi-title">Assessments returned ≤15d</div><div class="kpi-val" id="kpiTurn">—</div></div>
-    <div class="card"><div class="kpi-title">Median engagement index</div><div class="kpi-val" id="kpiEng">—</div></div>
-    <div class="card"><div class="kpi-title">At‑risk modules</div><div class="kpi-val" id="kpiRisk">—</div></div>
+  <div class="section">
+    <h2>Assessment & Programme Monitoring</h2>
+    <div class="grid">
+      <div class="card"><h3>Programme Pass Rates by Term</h3><div id="fig1" style="height:360px"></div></div>
+      <div class="card"><h3>Assessment Turnaround Distribution</h3><div id="fig2" style="height:360px"></div><div class="caption">Each bar = number of assessments in that turnaround bin.</div></div>
+    </div>
   </div>
 
-  <!-- Charts -->
-  <div class="grid">
-    <div class="card"><h3>Programme Pass Rates by Term</h3><div id="fig1" style="height:360px"></div></div>
-    <div class="card"><h3>Assessment Turnaround Distribution</h3><div id="fig2" style="height:360px"></div><div class="caption">Each bar = number of assessments in that turnaround bin.</div></div>
-    <div class="card"><h3>Engagement vs Pass Rate</h3><div id="fig3" style="height:360px"></div><div class="caption">Each dot = a programme/term combination.</div></div>
-    <div class="card"><h3>Modules: Pass vs Survey Satisfaction</h3><div id="fig4" style="height:360px"></div><div class="caption">Each dot = a module. Red = low satisfaction & pass.</div></div>
-    <div class="card"><h3>Segment #5 — Medium‑to‑Low Engagement & Pass</h3><div id="fig5" style="height:360px"></div></div>
-    <div class="card"><h3>Segment #6 — Modules with Medium‑to‑Low Pass</h3><div id="fig6" style="height:360px"></div></div>
+  <div class="section">
+    <h2>Engagement & At‑risk Lens</h2>
+    <div class="grid">
+      <div class="card"><h3>Engagement vs Pass Rate</h3><div id="fig3" style="height:360px"></div><div class="caption">Each dot = a programme/term combination.</div></div>
+      <div class="card"><h3>Modules: Pass vs Survey Satisfaction</h3><div id="fig4" style="height:360px"></div><div class="caption">Each dot = a module. Red = low satisfaction & pass.</div></div>
+      <div class="card"><h3>Segment #5 — Medium‑to‑Low Engagement & Pass</h3><div id="fig5" style="height:360px"></div></div>
+      <div class="card"><h3>Segment #6 — Modules with Medium‑to‑Low Pass</h3><div id="fig6" style="height:360px"></div></div>
+    </div>
   </div>
 
-  <!-- Data table -->
-  <div class="card" style="margin-top:14px">
-    <h3>Module Summary</h3>
-    <table id="modTable" class="display" style="width:100%"></table>
-    <div class="caption">Source: <code>docs/data/*.csv</code>. All data are synthetic for demo.</div>
+  <div class="section">
+    <div class="card">
+      <h3>Module Summary</h3>
+      <table id="modTable" class="display" style="width:100%"></table>
+      <div class="caption">Source: <code>docs/data/*.csv</code>. All data are synthetic for demo.</div>
+    </div>
   </div>
 </main>
 
+<footer>© 2025 — Built with pandas/Plotly on GitHub Pages · QAA‑aligned synthetic analytics</footer>
+
 <script>
 (async function () {
-  // ---------- helpers ----------
+  // ---- helpers ----
   const bust = (p) => p + (p.includes("?") ? "&" : "?") + "v=" + Date.now();
   const bottomLegend = () => ({ orientation:"h", y:-0.2, x:0.5, xanchor:"center", yanchor:"top" });
 
-  // CSV loader: trims headers & values; skips empty lines
   const loadCSV = async (path) => new Promise((resolve, reject) => {
     Papa.parse(path, {
       download: true,
@@ -79,24 +137,17 @@
     });
   });
 
-  // ---------- load CSVs from docs/data ----------
+  // ---- load CSVs ----
   const base = "data/";
   let progPass = [], turn = [], eng = [], risk = [];
-  try {
-    [progPass, turn, eng, risk] = await Promise.all([
-      loadCSV(bust(base + "kpi_pass_rate.csv")),
-      loadCSV(bust(base + "assessment_turnaround_bins.csv")),
-      loadCSV(bust(base + "engagement_index.csv")),
-      loadCSV(bust(base + "at_risk_modules.csv"))
-    ]);
-  } catch (e) {
-    alert("Could not load CSVs from docs/data/. Check that the four CSVs exist.");
-    return;
-  }
+  [progPass, turn, eng, risk] = await Promise.all([
+    loadCSV(bust(base + "kpi_pass_rate.csv")),
+    loadCSV(bust(base + "assessment_turnaround_bins.csv")),
+    loadCSV(bust(base + "engagement_index.csv")),
+    loadCSV(bust(base + "at_risk_modules.csv"))
+  ]);
 
-  // ---------- normalize helpers ----------
-  const by = (arr, key) => arr.reduce((m,d)=>((m[d[key]]??=[]).push(d),m),{});
-
+  // ---- normalize risk ----
   function normalizeRisk(rows){
     const clean = (v) => (typeof v === "string" ? v.trim() : v);
     const TRUE_SET  = new Set(["true","1","yes","y"]);
@@ -123,7 +174,7 @@
   }
   const riskClean = normalizeRisk(risk);
 
-  // ---------- KPIs ----------
+  // ---- KPIs ----
   function computeKPIs(pp, trn, e, rk){
     const overallPass = (
       pp.reduce((s,d)=>s+(+d.pass_rate_pct||0),0) / Math.max(pp.length,1)
@@ -140,12 +191,18 @@
   document.getElementById("kpiPass").textContent = k.overallPass;
   document.getElementById("kpiTurn").textContent = k.pctTurn15;
   document.getElementById("kpiEng").textContent  = k.engMed;
-  document.getElementById("kpiRisk").textContent = k.riskCnt;
+  // We still display “At-risk modules” inline in hero’s cards? We showed 3 mini KPIs there by design; keep 4th below:
+  const extraKpi = document.createElement("div");
+  extraKpi.className = "card";
+  extraKpi.innerHTML = `<div class="kpi-title">At‑risk modules</div><div class="kpi-val" id="kpiRisk">${k.riskCnt}</div>`;
+  // (If you want it in hero, swap with one of the three mini cards.)
 
-  // ---------- Charts ----------
-  // 1) Programme pass rates by term (legend below)
-  const series = by(progPass, "programme");
-  const traces1 = Object.entries(series).map(([name,rows]) => ({
+  // ---- Charts ----
+  const groupBy = (arr, key) => arr.reduce((m,d)=>((m[d[key]]??=[]).push(d),m),{});
+
+  // 1) Programme pass rates
+  const byProg = groupBy(progPass, "programme");
+  const traces1 = Object.entries(byProg).map(([name,rows]) => ({
     name, type:"scatter", mode:"lines+markers",
     x: rows.map(r=>r.term), y: rows.map(r=>r.pass_rate_pct)
   }));
@@ -159,8 +216,7 @@
   const counts = bins.map(b => turn.filter(d=>String(d.turn_bin)===b).length);
   Plotly.newPlot("fig2", [{x:bins,y:counts,type:"bar"}], {margin:{t:10}, showlegend:false});
 
-  // 3) Engagement vs pass (programme/term points)
-  // map engagement onto pass by programme+term
+  // 3) Engagement vs Pass
   const key = (p,t)=>`${p}|||${t}`;
   const engMap = new Map(eng.map(d=>[key(d.programme,d.term), d.engagement_index]));
   const merged = progPass.map(d=>({ ...d, engagement_index: engMap.get(key(d.programme,d.term)) }));
@@ -181,7 +237,7 @@
      mode:"markers", name:"Higher satisfaction", marker:{color:"seagreen"}}
   ], {xaxis:{title:"Survey score (1–5)"}, yaxis:{title:"Pass rate (%)"}, legend: bottomLegend(), margin:{t:10}});
 
-  // 5) Segment #5 — ≤ medians on fig3
+  // 5) Segment #5 — ≤ medians
   const engVals  = merged.map(d=>+d.engagement_index||0).sort((a,b)=>a-b);
   const passVals = merged.map(d=>+d.pass_rate_pct||0).sort((a,b)=>a-b);
   const medEng   = engVals[Math.floor(engVals.length/2)] || 0;
@@ -217,7 +273,7 @@
     legend: bottomLegend(), margin:{t:10}
   });
 
-  // ---------- Table (null-safe) ----------
+  // ---- Table (null-safe) ----
   const cols = [
     { title:"module_id",   data:"module_id",   defaultContent:"—" },
     { title:"pass_rate",   data:"pass_rate",   defaultContent:"—" },
