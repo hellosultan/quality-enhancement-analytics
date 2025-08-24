@@ -135,5 +135,13 @@ PNGs
 🤝 Notes
 	•	All data are synthetic (RNG-seeded) and safe for public repos.
 	•	Designed for lightweight analytics using pandas + SQLite (scale up to Spark only if needed).
+---
+## 📌 Citation
 
-⸻
+If you use this project, please cite it as:
+
+**APA style:**
+Muhammad, S. (2025). *Quality Enhancement Analytics: Synthetic Higher Education Data Aligned to QAA UK Themes*. Zenodo. https://doi.org/10.5281/zenodo.16937642
+
+**IEEE style:**
+S. Muhammad, "Quality Enhancement Analytics: Synthetic Higher Education Data Aligned to QAA UK Themes," Zenodo, 2025. [Online]. Available: https://doi.org/10.5281/zenodo.16937642
