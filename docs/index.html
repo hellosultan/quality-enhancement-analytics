@@ -122,7 +122,7 @@
   const asArray = (sel) => Array.from(sel.selectedOptions).map(o=>o.value);
 
   // ---- load CSVs ----
-  const base = "../reports/figures/";
+  const base = "data/";
   const progPass = await loadCSV(base + "kpi_pass_rate.csv");
   const turn     = await loadCSV(base + "assessment_turnaround_bins.csv");
   const eng      = await loadCSV(base + "engagement_index.csv");
