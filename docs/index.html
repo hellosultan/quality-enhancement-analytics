@@ -59,6 +59,25 @@
     .caption{color:var(--muted); font-size:12px; margin-top:8px}
     footer{max-width:1200px; margin:30px auto; padding:0 18px; color:var(--muted); font-size:12px}
     table.dataTable thead th{background:#0c1224;color:#cbd5e1;border-bottom:1px solid var(--ring)}
+    .insight-copy{color:var(--muted); font-size:14px; line-height:1.55; margin:6px 0 12px}
+    .callout{
+  background:linear-gradient(180deg, rgba(96,165,250,.08), rgba(20,83,45,.06));
+  border:1px solid rgba(96,165,250,.18);
+  border-radius:16px; padding:16px;
+  box-shadow: 0 6px 24px rgba(2,6,23,.25);
+}
+.callout h3{margin:0 0 8px; font-size:16px}
+.callout p,.callout li{color:var(--muted); font-size:14px; line-height:1.6}
+.callout .legend{display:flex; gap:10px; flex-wrap:wrap; margin:8px 0 2px}
+.callout .legend .badge{background:#0d142a}
+.badge-row{display:flex; gap:10px; flex-wrap:wrap; margin:6px 0 10px}
+.badge{display:inline-flex; align-items:center; gap:8px; background:#0d142a; border:1px solid var(--ring);
+  border-radius:999px; padding:6px 10px; font-size:12px; color:#cbd5e1}
+.swatch{width:10px; height:10px; border-radius:3px; display:inline-block}
+.swatch.red{background:crimson}
+.swatch.green{background:seagreen}
+.swatch.blue{background:#60a5fa}
+  
   </style>
 </head>
 <body>
@@ -67,7 +86,6 @@
   <div class="brand">Quality Enhancement Analytics</div>
   <div class="nav-actions">
     <a href="https://github.com/hellosultan/quality-enhancement-analytics" target="_blank" rel="noopener">GitHub</a>
-    <a class="primary" href="data/kpi_pass_rate.csv" target="_blank" rel="noopener">Download CSVs</a>
   </div>
 </header>
 
@@ -88,22 +106,107 @@
   </div>
 </section>
 
+<!-- 📌 How to read this dashboard callout -->
+<div class="callout" style="max-width:1200px; margin:0 auto 14px; padding:16px 18px">
+  <h3>How to read this dashboard</h3>
+  <div class="legend">
+    <span class="badge"><span class="swatch red"></span>Red = “At-risk” module</span>
+    <span class="badge"><span class="swatch green"></span>Green = Higher satisfaction</span>
+    <span class="badge"><span class="swatch blue"></span>Blue = Programme/series marker</span>
+  </div>
+  <p style="margin:6px 0 10px">
+    <b>At-risk definition</b>: a module is shown in <b>red</b> when it falls into the low-satisfaction & low-pass cluster (Figure 4).  
+    Figure 6 then focuses on modules with ≤ median pass and splits them into at-risk vs higher-satisfaction.
+  </p>
+  <ul style="margin:6px 0 0 18px">
+    <li><b>Fig 1</b> — Pass rate trends by programme across terms (spot dips/divergence).</li>
+    <li><b>Fig 2</b> — Turnaround timeliness (QAA emphasis on prompt feedback).</li>
+    <li><b>Fig 3</b> — Engagement vs pass; bottom-left quadrant signals concern.</li>
+    <li><b>Fig 4</b> — Module health: survey satisfaction vs pass (red = at-risk).</li>
+    <li><b>Fig 5</b> — Only points ≤ medians on both engagement & pass (focus view).</li>
+    <li><b>Fig 6</b> — Only modules ≤ median pass, coloured by at-risk rule.</li>
+  </ul>
+</div>
 <main>
   <div class="section">
     <h2>Assessment & Programme Monitoring</h2>
     <div class="grid">
-      <div class="card"><h3>Programme Pass Rates by Term</h3><div id="fig1" style="height:360px"></div></div>
-      <div class="card"><h3>Assessment Turnaround Distribution</h3><div id="fig2" style="height:360px"></div><div class="caption">Each bar = number of assessments in that turnaround bin.</div></div>
+      <div class="card">
+  <h3>Programme Pass Rates by Term</h3>
+  <div class="insight-copy">
+    Tracks the pass rate (%) across terms for each programme. This helps identify
+    trends in attainment and highlights divergence between disciplines over time.
+  </div>
+  <div class="badge-row">
+    <span class="badge"><span class="swatch blue"></span>Each line = a programme</span>
+  </div>
+  <div id="fig1" style="height:360px"></div>
+</div>
+      <div class="card">
+  <h3>Assessment Turnaround Distribution</h3>
+  <div class="insight-copy">
+    Bar chart showing how quickly assessments are returned. Timely feedback is a key QAA expectation.
+  </div>
+  <div class="badge-row">
+    <span class="badge"><span class="swatch blue"></span>Each bar = assessments in turnaround bin</span>
+  </div>
+  <div id="fig2" style="height:360px"></div>
+  <div class="caption">Each bar = number of assessments in that turnaround bin.</div>
+</div>
     </div>
   </div>
 
   <div class="section">
     <h2>Engagement & At‑risk Lens</h2>
     <div class="grid">
-      <div class="card"><h3>Engagement vs Pass Rate</h3><div id="fig3" style="height:360px"></div><div class="caption">Each dot = a programme/term combination.</div></div>
-      <div class="card"><h3>Modules: Pass vs Survey Satisfaction</h3><div id="fig4" style="height:360px"></div><div class="caption">Each dot = a module. Red = low satisfaction & pass.</div></div>
-      <div class="card"><h3>Segment #5 — Medium‑to‑Low Engagement & Pass</h3><div id="fig5" style="height:360px"></div></div>
-      <div class="card"><h3>Segment #6 — Modules with Medium‑to‑Low Pass</h3><div id="fig6" style="height:360px"></div></div>
+      <div class="card">
+  <h3>Engagement vs Pass Rate</h3>
+  <div class="insight-copy">
+    Scatter of engagement index vs pass rate. Bottom-left quadrant highlights programmes/terms
+    with both low engagement and low attainment.
+  </div>
+  <div class="badge-row">
+    <span class="badge"><span class="swatch blue"></span>Each dot = a programme / term</span>
+  </div>
+  <div id="fig3" style="height:360px"></div>
+  <div class="caption">Each dot = a programme/term combination.</div>
+</div>
+      <div class="card">
+  <h3>Modules: Pass vs Survey Satisfaction</h3>
+  <div class="insight-copy">
+    This scatterplot compares survey satisfaction against pass rates. 
+    <b>Red dots</b> = modules flagged as “at-risk” (low satisfaction & low pass rates). 
+    <b>Green dots</b> = higher satisfaction & better pass rates.
+  </div>
+  <div class="badge-row">
+    <span class="badge"><span class="swatch red"></span>Low satisfaction & pass (at-risk)</span>
+    <span class="badge"><span class="swatch green"></span>Higher satisfaction</span>
+  </div>
+  <div id="fig4" style="height:360px"></div>
+</div>
+      <div class="card">
+  <h3>Segment #5 — Medium-to-Low Engagement & Pass</h3>
+  <div class="insight-copy">
+    Focus view of programme/term points at or below the median on both engagement
+    and pass rate. Dotted lines mark the medians.
+  </div>
+  <div class="badge-row">
+    <span class="badge"><span class="swatch blue"></span>Each dot = a programme / term ≤ medians</span>
+  </div>
+  <div id="fig5" style="height:360px"></div>
+</div>
+     <div class="card">
+  <h3>Segment #6 — Modules with Medium‑to‑Low Pass</h3>
+  <div class="insight-copy">
+    Shows modules at or below the median pass rate. <b>Red dots</b> mark those flagged as at‑risk;
+    <b>green dots</b> indicate relatively higher satisfaction within this low‑pass group.
+  </div>
+  <div class="badge-row">
+    <span class="badge"><span class="swatch red"></span>At‑risk (within ≤ median pass)</span>
+    <span class="badge"><span class="swatch green"></span>Higher satisfaction (within ≤ median pass)</span>
+  </div>
+  <div id="fig6" style="height:360px"></div>
+</div>
     </div>
   </div>
 
@@ -193,8 +296,9 @@
   document.getElementById("kpiEng").textContent  = k.engMed;
   // We still display “At-risk modules” inline in hero’s cards? We showed 3 mini KPIs there by design; keep 4th below:
   const extraKpi = document.createElement("div");
-  extraKpi.className = "card";
-  extraKpi.innerHTML = `<div class="kpi-title">At‑risk modules</div><div class="kpi-val" id="kpiRisk">${k.riskCnt}</div>`;
+extraKpi.className = "mini";
+extraKpi.innerHTML = `<div class="t">At‑risk modules</div><div class="v" id="kpiRisk">${k.riskCnt}</div>`;
+document.querySelector(".hero-kpis").appendChild(extraKpi);
   // (If you want it in hero, swap with one of the three mini cards.)
 
   // ---- Charts ----
