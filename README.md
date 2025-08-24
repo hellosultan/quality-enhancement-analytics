@@ -5,6 +5,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub Pages](https://img.shields.io/badge/Dashboard-Live-blue?logo=github)](https://hellosultan.github.io/quality-enhancement-analytics/)
 
+📊 End-to-end analytics project using synthetic higher-ed datasets aligned with QAA UK themes (Assessment, Engagement, Monitoring).
+
 ## 📸 Dashboard Preview
 Here are a few highlights from the interactive dashboard:
 
