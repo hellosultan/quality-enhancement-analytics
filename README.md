@@ -1,25 +1,26 @@
 # Quality Enhancement Analytics
+## 📸 Dashboard Preview
 
-## 🌐 Live Dashboard
-Interactive demo hosted via GitHub Pages:  
-👉 [View Dashboard](https://hellosultan.github.io/quality-enhancement-analytics/)
+Here are a few highlights from the interactive dashboard:
+
+**1. Programme pass rates by term**
+![Programme pass rates](docs/screens/fig1_pass_rates.png)
+
+**2. At-risk modules (satisfaction vs pass)**
+![At-risk modules](docs/screens/fig4_at_risk.png)
+
+👉 [View the full interactive dashboard](https://hellosultan.github.io/quality-enhancement-analytics/)
 
 ---
 
-## ⚡ Quick Setup (Local)
+## Quick Setup (Local)
+
 ```bash
-# Create & activate env
 conda create -n qe python=3.11 -y
 conda activate qe
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Build the synthetic database + CSVs (if not already built)
-python src/sql/load_qe_data.py
-
-# Generate the static dashboard
-python src/app/build_static_dashboard.py
+python src/sql/load_qe_data.py    # build synthetic SQLite DB + CSVs
+python src/app/build_static_dashboard.py   # generate static dashboard
 
 **End-to-end analytics project for Quality Enhancement (QE) in Higher Education**, using **synthetic datasets** aligned with **QAA UK** themes.  
 Showcases skills across **data generation → cleaning → KPI analysis → visualization/dashboard**.
