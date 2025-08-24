@@ -110,13 +110,13 @@
 <div class="callout" style="max-width:1200px; margin:0 auto 14px; padding:16px 18px">
   <h3>How to read this dashboard</h3>
   <div class="legend">
-    <span class="badge"><span class="swatch red"></span>Red = “At-risk” module</span>
-    <span class="badge"><span class="swatch green"></span>Green = Higher satisfaction</span>
-    <span class="badge"><span class="swatch blue"></span>Blue = Programme/series marker</span>
-  </div>
+  <span class="badge"><span class="swatch red"></span>Colour coding: Red = At-risk modules</span>
+  <span class="badge"><span class="swatch green"></span>Green = Higher satisfaction</span>
+  <span class="badge"><span class="swatch blue"></span>Blue = Programme/series marker</span>
+</div>
   <p style="margin:6px 0 10px">
-    <b>At-risk definition</b>: a module is shown in <b>red</b> when it falls into the low-satisfaction & low-pass cluster (Figure 4).  
-    Figure 6 then focuses on modules with ≤ median pass and splits them into at-risk vs higher-satisfaction.
+    <b>At-risk definition</b>: modules are flagged when both satisfaction and pass are below set thresholds.  
+Figures 4–6 progressively zoom in: overall cluster (Fig 4), ≤ median engagement & pass (Fig 5), and ≤ median pass with satisfaction split (Fig 6).
   </p>
   <ul style="margin:6px 0 0 18px">
     <li><b>Fig 1</b> — Pass rate trends by programme across terms (spot dips/divergence).</li>
@@ -151,7 +151,6 @@
     <span class="badge"><span class="swatch blue"></span>Each bar = assessments in turnaround bin</span>
   </div>
   <div id="fig2" style="height:360px"></div>
-  <div class="caption">Each bar = number of assessments in that turnaround bin.</div>
 </div>
     </div>
   </div>
@@ -162,9 +161,9 @@
       <div class="card">
   <h3>Engagement vs Pass Rate</h3>
   <div class="insight-copy">
-    Scatter of engagement index vs pass rate. Bottom-left quadrant highlights programmes/terms
-    with both low engagement and low attainment.
-  </div>
+  Scatter of engagement index vs pass rate. Bottom-left quadrant highlights programmes/terms
+  with both low engagement and low attainment. Engagement index is scaled 1–5 from survey items.
+</div>
   <div class="badge-row">
     <span class="badge"><span class="swatch blue"></span>Each dot = a programme / term</span>
   </div>
@@ -176,7 +175,7 @@
   <div class="insight-copy">
     This scatterplot compares survey satisfaction against pass rates. 
     <b>Red dots</b> = modules flagged as “at-risk” (low satisfaction & low pass rates). 
-    <b>Green dots</b> = higher satisfaction & better pass rates.
+    <b>Green dots</b> = Higher satisfaction & better pass rates.
   </div>
   <div class="badge-row">
     <span class="badge"><span class="swatch red"></span>Low satisfaction & pass (at-risk)</span>
@@ -219,7 +218,7 @@
   </div>
 </main>
 
-<footer>© 2025 — Built with pandas/Plotly on GitHub Pages · QAA‑aligned synthetic analytics</footer>
+<footer>© 2025 — Built with pandas & Plotly · QAA-aligned synthetic demo (GitHub Pages)</footer>
 
 <script>
 (async function () {
@@ -379,11 +378,13 @@ document.querySelector(".hero-kpis").appendChild(extraKpi);
 
   // ---- Table (null-safe) ----
   const cols = [
-    { title:"module_id",   data:"module_id",   defaultContent:"—" },
-    { title:"pass_rate",   data:"pass_rate",   defaultContent:"—" },
-    { title:"mean_survey", data:"mean_survey", defaultContent:"—" },
-    { title:"at_risk",     data:"at_risk",     defaultContent:"—" }
-  ];
+  { title:"module_id", data:"module_id", defaultContent:"—" },
+  { title:"pass_rate", data:"pass_rate", defaultContent:"—",
+    render: d => d == null ? "—" : (+d).toFixed(2) },
+  { title:"mean_survey", data:"mean_survey", defaultContent:"—",
+    render: d => d == null ? "—" : (+d).toFixed(2) },
+  { title:"at_risk", data:"at_risk", defaultContent:"—" }
+];
   if ($.fn.dataTable.isDataTable("#modTable")) $("#modTable").DataTable().destroy();
   $("#modTable").empty();
   $("#modTable").DataTable({ data: riskClean, columns: cols, pageLength: 10, order: [[1,"asc"]] });
