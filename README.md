@@ -1,6 +1,4 @@
 # Quality Enhancement Analytics
-# Quality Enhancement Analytics
-
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16937642.svg)](https://doi.org/10.5281/zenodo.16937642)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub Pages](https://img.shields.io/badge/Dashboard-Live-blue?logo=github)](https://hellosultan.github.io/quality-enhancement-analytics/)
