@@ -1,13 +1,25 @@
 # Quality Enhancement Analytics
 ## 📸 Dashboard Preview
 
+
 Here are a few highlights from the interactive dashboard:
 
-**1. Programme pass rates by term**
-![Programme pass rates](docs/screens/fig1_pass_rates.png)
+<table>
+<tr>
+<td align="center" width="50%">
+  
+**1. Programme pass rates by term**  
+<img src="docs/screens/fig1_pass_rates.png" width="100%" alt="Programme pass rates">
 
-**2. At-risk modules (satisfaction vs pass)**
-![At-risk modules](docs/screens/fig4_at_risk.png)
+</td>
+<td align="center" width="50%">
+
+**2. At-risk modules (satisfaction vs pass)**  
+<img src="docs/screens/fig4_at_risk.png" width="100%" alt="At-risk modules">
+
+</td>
+</tr>
+</table>
 
 👉 [View the full interactive dashboard](https://hellosultan.github.io/quality-enhancement-analytics/)
 
