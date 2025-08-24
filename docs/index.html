@@ -22,19 +22,26 @@
 
   // ---------- load CSVs (from docs/data) ----------
   const base = "data/";
-  let progPass = [], turn = [], eng = [], risk = [];
-  try {
-    [progPass, turn, eng, risk] = await Promise.all([
-      loadCSV(base + "kpi_pass_rate.csv"),
-      loadCSV(base + "assessment_turnaround_bins.csv"),
-      loadCSV(base + "engagement_index.csv"),
-      loadCSV(base + "at_risk_modules.csv"),
-    ]);
-  } catch (e) {
-    log("CSV load error:", e);
-    alert("Could not load CSVs from docs/data/. Ensure the four CSVs exist.");
-    return;
-  }
+let progPass = [], turn = [], eng = [], risk = [];
+try {
+  [progPass, turn, eng, risk] = await Promise.all([
+    loadCSV(base + "kpi_pass_rate.csv"),
+    loadCSV(base + "assessment_turnaround_bins.csv"),
+    loadCSV(base + "engagement_index.csv"),
+    loadCSV(base + "at_risk_modules.csv")
+  ]);
+
+  // ✅ Debug logs go here, *after* data is loaded
+  console.log("Sample row progPass:", progPass[0]);
+  console.log("Sample row turn:", turn[0]);
+  console.log("Sample row eng:", eng[0]);
+  console.log("Sample row risk:", risk[0]);
+
+} catch (e) {
+  log("CSV load error:", e);
+  alert("Could not load CSVs from docs/data/. Check that the four CSVs exist.");
+  return;
+}
   log("Loaded lengths:", { progPass: progPass.length, turn: turn.length, eng: eng.length, risk: risk.length });
 
   // ---------- normalize risk (robust booleans & numbers) ----------
