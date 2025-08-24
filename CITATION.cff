@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this project, please cite it as below."
+title: "Quality Enhancement Analytics: Synthetic Higher Education Data Aligned to QAA UK Themes"
+authors:
+  - family-names: "Muhammad"
+    given-names: "Sultan"
+affiliation: sultanmuhammad.ai
+date-released: 2025-08-24
+version: "1.0.0"
+doi: "10.5281/zenodo.16937642"
+license: MIT
+repository-code: "https://github.com/hellosultan/quality-enhancement-analytics"
+keywords:
+  - Higher Education Analytics
+  - Quality Enhancement
+  - QAA UK
+  - Student Engagement
+  - Assessment Turnaround
+  - Data Visualization
+  - Synthetic Data
+  - Python
+  - Pandas
+  - SQLite
+  - Plotly
